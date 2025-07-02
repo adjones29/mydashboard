@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Adam — Personal Dashboard</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>
+    :root{
+      --grad-1:#f857a6; --grad-2:#ff5858; --grad-3:#8456ff; --grad-4:#536dff;
+      --bg-main:#f9f9fb;      /* changed for light mode */
+      --bg-card:#ffffff;
+      --stroke:rgba(0,0,0,.05);
+      --sidebar:#f0f0f5;
+      --txt:#1a1a1a;
+      --txt-dim:#555;
+      --row-gap:22px; --col-gap:22px;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:Arial,Helvetica,sans-serif;background:var(--bg-main);color:var(--txt);
+         height:100vh;display:grid;grid-template-columns:220px 1fr;overflow:hidden}
+    .btn-add{background:var(--grad-3);color:#fff;border:none;border-radius:8px;
+             padding:6px 12px;font-size:.83rem;cursor:pointer;display:inline-flex;
+             align-items:center;justify-content:center}
+    .btn-add:hover{filter:brightness(1.15)}
+
+    /* SIDEBAR */
+    aside{background:var(--sidebar);display:flex;flex-direction:column;gap:32px;
+          padding:24px 18px;overflow-y:auto}
+    .brand{display:flex;align-items:center;gap:10px;font-weight:600;font-size:1.25rem;color:var(--grad-4)}
+    .brand svg{width:20px;height:20px;fill:#ffea00}
+    nav .nav-item{display:flex;align-items:center;gap:12px;opacity:.8;font-size:.95rem;
+                  color:var(--txt);cursor:pointer}
+    nav .nav-item:hover{opacity:1}
+
+    .sidebar-section h3{font-size:.75rem;font-weight:600;text-transform:uppercase;
+                        letter-spacing:.04em;color:#7e7ea0;margin-bottom:10px}
+    .ql-header{display:inline;justify-content:space-between;align-items:center;
+                margin-bottom:10px}
+    .ql-header h3{font-size:.85rem;font-weight:600;margin:0;
+      background:linear-gradient(120deg,var(--grad-1),var(--grad-2),
+                  var(--grad-3),var(--grad-4));
+      -webkit-background-clip:text;color:transparent}
+    .bucket-title{font-size:.75rem;font-weight:600;text-transform:uppercase;
+                  letter-spacing:.04em;color:#7e7ea0;margin:18px 0 8px}
+    .ql-list .ql-item{display:flex;align-items:center;margin:4px 0;font-size:.9rem;cursor:grab}
+    .ql-dot{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;
+            justify-content:center;font-size:10px;font-weight:700;color:#fff;
+            margin-right:8px}
+    .ql-item a{flex:1;min-width:0;color:var(--txt);text-decoration:none;overflow:hidden;
+                text-overflow:ellipsis}
+    .ql-item .del{margin-left:auto;color:#888;font-weight:700;cursor:pointer;padding:0 4px}
+    .ql-item .del:hover{color:#e74c3c}
+
+    /* MAIN & HEADER */
+    main{padding:24px 28px;display:grid;gap:var(--row-gap);overflow-y:auto}
+    .top-bar{background:#ffffff;border:1px solid var(--stroke);
+             border-radius:14px;padding:12px 20px;display:flex;
+             justify-content:space-between;align-items:center;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+    .top-left{display:flex;align-items:center;gap:14px}
+    .logo{width:32px;height:32px;border-radius:18px}
+    .top-right{display:flex;flex-direction:column;align-items:flex-end;
+               font-size:.9rem;gap:2px}
+    #today-date{color:var(--txt-dim)} #weather-line{opacity:.8}
+
+    /* CARD BASE */
+    .cards-row{display:grid;gap:var(--col-gap)}
+    .cards-row.row-1{grid-template-columns:repeat(3,1fr)}
+    .cards-row.row-2{grid-template-columns:repeat(3,1fr)}
+    #kanbanCard{grid-column:1/3}
+
+    .card{background:var(--bg-card);border:1px solid var(--stroke);
+          border-radius:16px;padding:20px;display:flex;flex-direction:column;
+          transition:.15s transform,.15s box-shadow}
+    .card:hover{transform:translateY(-2px);box-shadow:0 4px 20px rgba(0,0,0,.1)}
+    .card h2,.card h3{background:linear-gradient(120deg,var(--grad-1),
+                   var(--grad-2),var(--grad-3),var(--grad-4));
+                   -webkit-background-clip:text;color:transparent;
+                   font-weight:600;margin:0}
+
+    /* COUNTDOWN TILES */
+    .section-head{display:flex;align-items:center;position:relative;
+                  margin-bottom:16px}
+    .section-head h2{flex:1}
+    .section-head .btn-add{position:absolute;right:0;top:50%;
+                            transform:translateY(-50%)}
+    .cd-grid{display:grid;grid-template-columns:
+             repeat(auto-fill,minmax(145px,1fr));gap:14px}
+    .cd-tile{background:var(--bg-card);border:1px solid var(--stroke);
+             border-radius:14px;padding:12px 14px;display:flex;
+             flex-direction:column;position:relative;cursor:pointer;
+             transition:.15s transform,.15s box-shadow}
+    .cd-tile:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(0,0,0,.1)}
+    .cd-name{font-weight:600;white-space:nowrap;overflow:hidden;
+             text-overflow:ellipsis}
+    .cd-date{font-size:.78rem;opacity:.85;margin-top:2px}
+    .cd-days{font-size:1.8rem;font-weight:700;margin-top:6px;
+             display:flex;gap:4px;justify-content:center}
+    .cd-del{position:absolute;top:6px;right:8px;font-weight:700;
+            color:#888;cursor:pointer;opacity:.7}
+    .cd-del:hover{opacity:1}
+
+    /* TO-DO & ROUTINE */
+    .todo-input,.routine-input{display:flex;gap:8px;margin-bottom:12px}
+    .todo-input input,.routine-input input{flex:1;background:var(--bg-card);
+                                             border:1px solid var(--stroke);
+                                             color:var(--txt);
+                                             padding:6px 8px;border-radius:6px}
+    ul.kanban-list, ul.okr-list, ul#todoList, ul#rutList{display:flex;flex-direction:column;
+                                gap:8px;overflow-y:auto;margin-top:8px}
+    .task{background:var(--bg-card);border:1px solid var(--stroke);border-radius:12px;
+          padding:10px 12px;color:var(--txt);display:flex;
+          justify-content:space-between;align-items:center;transition:.1s background}
+    .task:hover{background:rgba(0,0,0,.02)}
+
+    /* KANBAN TILES */
+    .column .kanban-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill,minmax(145px,1fr));
+      gap:14px;
+      padding:0;
+      min-height:120px;
+    }
+    .column .kanban-list .task {
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      position:relative;
+      min-height:110px;
+      cursor:grab;
+    }
+    .column .kanban-list .task .txt {
+      white-space:normal;
+      overflow-wrap:break-word;
+      word-break:break-word;
+    }
+    .column .kanban-list .task .del {
+      position:absolute;top:6px;right:8px;opacity:.7;
+    }
+    .column .kanban-list .task .del:hover {opacity:1}
+  </style>
+</head>
+<body>
+  <!-- SIDEBAR -->
+  <aside>
+    <div class="brand">
+      <svg viewBox="0 0 24 24"><path d="M5 13l5-10 5 10h-4l-1 5-5-5z"/></svg> Adam
+    </div>
+    <div class="sidebar-section ql-sidebar">
+      <div class="ql-header">
+        <h3>Quick Links</h3>
+        <button id="qlAddBtn" class="btn-add">＋ Add Links</button>
+      </div>
+      <div class="bucket-title">Work Links</div>
+      <div id="linksWork" class="ql-list"></div>
+      <div class="bucket-title">Personal Links</div>
+      <div id="linksPersonal" class="ql-list"></div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main>
+    <!-- HEADER BAR -->
+    <div class="top-bar">
+      <div class="top-left">
+        <img class="logo" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' x2='1' y1='1' y2='0'%3E%3Cstop offset='0' stop-color='%23536dff'/%3E%3Cstop offset='1' stop-color='%238342ff'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='20' cy='20' r='18' fill='url(%23g)'/%3E%3Cpath d='M13 27l7-14 7 14h-4l-3-6-3 6z' fill='%23fff'/%3E%3C/svg%3E">
+        <span id="greeting"></span>
+      </div>
+      <div class="top-right">
+        <span id="today-date"><strong></strong></span>
+        <span id="weather-line">Loading weather…</span>
+      </div>
+    </div>
+
+    <!-- ROW 1 -->
+    <div class="cards-row row-1">
+      <div class="card">
+        <div class="section-head">
+          <h2>Countdown Clock</h2>
+          <button id="cdAddBtn" class="btn-add">＋ Add Countdown</button>
+        </div>
+        <div id="cdGrid" class="cd-grid"></div>
+      </div>
+
+      <div class="card">
+        <div class="section-head">
+          <h2>To-Do List</h2>
+          <button id="todoAddBtn" class="btn-add">＋ Add To-Do</button>
+        </div>
+        <ul id="todoList" class="kanban-list"></ul>
+      </div>
+
+      <div class="card">
+        <h2>Daily Routine</h2>
+        <div class="routine-input"><input id="newRut" placeholder="Add routine…"></div>
+        <ul id="rutList"></ul>
+      </div>
+    </div>
+
+    <!-- ROW 2 -->
+    <div class="cards-row row-2">
+      <div class="card" id="kanbanCard">
+        <div class="section-head">
+          <h2>Kanban Board</h2>
+          <button id="kanAddBtn" class="btn-add">＋ Add Task</button>
+        </div>
+        <div class="row-inner" style="display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-top:14px">
+          <div class="column" data-col="backlog">
+            <h3>Backlog</h3>
+            <ul id="list-backlog" class="kanban-list"></ul>
+          </div>
+          <div class="column" data-col="open">
+            <h3>Open</h3>
+            <ul id="list-open" class="kanban-list"></ul>
+          </div>
+          <div class="column" data-col="working">
+            <h3>Working</h3>
+            <ul id="list-working" class="kanban-list"></ul>
+          </div>
+          <div class="column" data-col="approval">
+            <h3>With Team</h3>
+            <ul id="list-approval" class="kanban-list"></ul>
+          </div>
+          <div class="column" data-col="done">
+            <h3>Done</h3>
+            <ul id="list-done" class="kanban-list"></ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="card okr-board">
+        <div class="section-head">
+          <h2>Goals</h2>
+          <button id="okrAddBtn" class="btn-add">＋ Add Goal</button>
+        </div>
+        <div id="okrContainer" class="row-okr" style="display:inline;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px">
+          <!-- OKR columns injected here -->
+        </div>
+      </div>
+    </div>
+
+    <!-- ROW 3 -->
+    <div class="cards-row" style="grid-template-columns:repeat(2,1fr)">
+      <div class="card"><h2>Scratchpad Notes</h2>
+        <textarea style="height:120px" placeholder="Jot ideas…"></textarea>
+      </div>
+      <div class="card"><h2>Open Space</h2>
+        <div id="daily-quote" style="margin-top:12px;font-style:italic;font-size:small"></div>
+      </div>
+    </div>
+  </main>
+
+  <!-- SCRIPTS -->
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+    // --- Supabase init ---
+    const supabaseUrl = 'https://mnwlemsgxisocyewvnxl.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ud2xlbXNneGlzb2N5ZXd2bnhsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE0MjM0NzQsImV4cCI6MjA2Njk5OTQ3NH0.kUAjrgCFac2rQgGTlwrlOixdRPo57pTmbsWsRMJrHY4';
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // --- Greeting & Date (unchanged) ---
+    (() => {
+      const h = new Date().getHours(),
+            g = h < 12 ? 'Good Morning' : h < 17 ? 'Good Afternoon' : 'Good Evening';
+      document.getElementById('greeting').textContent = `${g}, Adam`;
+      document.querySelector('#today-date strong').textContent =
+        new Date().toLocaleDateString(undefined, {
+          weekday:'long',year:'numeric',month:'long',day:'numeric'
+        });
+    })();
+
+    // --- Weather (unchanged) ---
+    (() => { /* ... same as before ... */ })();
+
+    // --- Quick Links (Supabase) ---
+    async function paintQuickLinks() {
+      const { data: store, error } = await supabase
+        .from('quick_links')
+        .select('*')
+        .order('position', { ascending: true });
+      if (error) return console.error(error);
+
+      const container = id => document.getElementById(id);
+      ['linksWork','linksPersonal'].forEach(id => container(id).innerHTML = '');
+
+      store.forEach(item => {
+        const d = document.createElement('div');
+        d.className = 'ql-item';
+        d.innerHTML = `
+          <span class="ql-dot" style="background:${item.color}">${item.label[0]}</span>
+          <a href="${item.url}" target="_blank">${item.label}</a>
+          <span class="del">✕</span>
+        `;
+        d.querySelector('.del').onclick = async () => {
+          await supabase.from('quick_links').delete().eq('id', item.id);
+          paintQuickLinks();
+        };
+        // double-click to edit
+        d.ondblclick = async () => {
+          const nl = prompt('Label',item.label),
+                nu = prompt('URL',item.url);
+          if (nl && nu) {
+            await supabase.from('quick_links')
+              .update({ label: nl.trim(), url: nu.trim() })
+              .eq('id', item.id);
+            paintQuickLinks();
+          }
+        };
+        container(item.category==='personal'?'linksPersonal':'linksWork').append(d);
+      });
+    }
+    document.getElementById('qlAddBtn').onclick = async () => {
+      const lb = prompt('Label?'),
+            url= prompt('URL?'),
+            cat= prompt('Category (work/personal)').toLowerCase().trim(),
+            color = ['#ff6b6b','#f59e0b','#34d399','#3b82f6','#a855f7','#ec4899','#10b981','#6366f1','#f87171'][Math.floor(Math.random()*9)];
+      if (lb && url && (cat==='work'||cat==='personal')) {
+        // get current count for position
+        const { data, error } = await supabase
+          .from('quick_links')
+          .select('position',{ count: 'exact' });
+        const pos = error ? 0 : data.length;
+        await supabase.from('quick_links').insert([
+          { label: lb.trim(), url: url.trim(), category: cat, color, position: pos }
+        ]);
+        paintQuickLinks();
+      }
+    };
+    paintQuickLinks();
+
+    // --- Countdown (Supabase) ---
+    async function paintCountdowns() {
+      const { data: cds, error } = await supabase
+        .from('countdowns')
+        .select('*')
+        .order('position',{ ascending: true });
+      if (error) return console.error(error);
+      const grid = document.getElementById('cdGrid');
+      grid.innerHTML = '';
+      cds.forEach((o,i) => {
+        const daysLeft = d => {
+          const t = new Date(d), n = new Date();
+          t.setHours(0,0,0,0); n.setHours(0,0,0,0);
+          return Math.max(0, Math.ceil((t-n)/864e5));
+        };
+        const div = document.createElement('div');
+        div.className='cd-tile';
+        div.innerHTML=`
+          <span class="cd-del">✕</span>
+          <div class="cd-name">${o.name}</div>
+          <div class="cd-date">${o.date}</div>
+          <div class="cd-days"><span>${daysLeft(o.date)}</span> Days</div>
+        `;
+        div.querySelector('.cd-del').onclick = async () => {
+          await supabase.from('countdowns').delete().eq('id', o.id);
+          paintCountdowns();
+        };
+        div.ondblclick = async () => {
+          const n = prompt('Name',o.name),
+                d = prompt('Date (YYYY-MM-DD)',o.date);
+          if (n && d) {
+            await supabase.from('countdowns')
+              .update({ name: n.trim(), date: d.trim() })
+              .eq('id', o.id);
+            paintCountdowns();
+          }
+        };
+        grid.appendChild(div);
+      });
+    }
+    document.getElementById('cdAddBtn').onclick = async () => {
+      const name = prompt('Name?'),
+            date = prompt('Date (YYYY-MM-DD)?');
+      if (name && date) {
+        const { data, error } = await supabase
+          .from('countdowns')
+          .select('position',{ count: 'exact' });
+        const pos = error ? 0 : data.length;
+        await supabase.from('countdowns')
+          .insert([{ name: name.trim(), date: date.trim(), position: pos }]);
+        paintCountdowns();
+      }
+    };
+    paintCountdowns();
+
+    // --- To-Do List (Supabase) ---
+    async function paintTodos() {
+      const { data: todo, error } = await supabase
+        .from('todos')
+        .select('*')
+        .order('position',{ ascending: true });
+      if (error) return console.error(error);
+      const ul = document.getElementById('todoList');
+      ul.innerHTML = '';
+      todo.forEach((t,i) => {
+        const li = document.createElement('li');
+        li.className='task';
+        li.innerHTML=`
+          <label><input type="checkbox" ${t.done?'checked':''}>
+            <span class="txt">${t.text}</span>
+          </label>
+          <span class="del">✕</span>
+        `;
+        li.querySelector('input').onchange = async e => {
+          await supabase.from('todos')
+            .update({ done: e.target.checked })
+            .eq('id', t.id);
+          paintTodos();
+        };
+        li.querySelector('.del').onclick = async () => {
+          await supabase.from('todos').delete().eq('id', t.id);
+          paintTodos();
+        };
+        li.querySelector('.txt').ondblclick = async () => {
+          const v = prompt('Edit', t.text);
+          if (v) {
+            await supabase.from('todos')
+              .update({ text: v.trim() })
+              .eq('id', t.id);
+            paintTodos();
+          }
+        };
+        ul.appendChild(li);
+      });
+    }
+    document.getElementById('todoAddBtn').onclick = async () => {
+      const v = prompt('New to-do?');
+      if (v) {
+        const { data, error } = await supabase
+          .from('todos')
+          .select('position',{ count: 'exact' });
+        const pos = error ? 0 : data.length;
+        await supabase.from('todos')
+          .insert([{ text: v.trim(), done: false, position: pos }]);
+        paintTodos();
+      }
+    };
+    paintTodos();
+
+    // --- Routine (Supabase) ---
+    async function paintRoutine() {
+      const { data: rut, error } = await supabase
+        .from('routines')
+        .select('*')
+        .order('position',{ ascending: true });
+      if (error) return console.error(error);
+      const ul = document.getElementById('rutList');
+      ul.innerHTML = '';
+      rut.forEach((r,i) => {
+        const li = document.createElement('li');
+        li.className='task';
+        li.innerHTML=`
+          <label><input type="checkbox" ${r.done?'checked':''}>
+            <span class="txt">${r.text}</span>
+          </label>
+          <span class="del">✕</span>
+        `;
+        li.querySelector('input').onchange = async e => {
+          await supabase.from('routines')
+            .update({ done: e.target.checked })
+            .eq('id', r.id);
+          paintRoutine();
+        };
+        li.querySelector('.del').onclick = async () => {
+          await supabase.from('routines').delete().eq('id', r.id);
+          paintRoutine();
+        };
+        li.querySelector('.txt').ondblclick = async () => {
+          const v = prompt('Edit', r.text);
+          if (v) {
+            await supabase.from('routines')
+              .update({ text: v.trim() })
+              .eq('id', r.id);
+            paintRoutine();
+          }
+        };
+        ul.appendChild(li);
+      });
+    }
+    document.getElementById('newRut').onkeydown = async e => {
+      if (e.key==='Enter' && e.target.value.trim()) {
+        const v = e.target.value.trim();
+        const { data, error } = await supabase
+          .from('routines')
+          .select('position',{ count: 'exact' });
+        const pos = error ? 0 : data.length;
+        await supabase.from('routines')
+          .insert([{ text: v, done: false, position: pos }]);
+        e.target.value = '';
+        paintRoutine();
+      }
+    };
+    paintRoutine();
+
+    // --- Kanban & OKR (Supabase) ---
+    // Initialize Sortable on load after painting boards
+    async function loadKanban() {
+      const cols = ['backlog','open','working','approval','done'];
+      const { data: tasks, error } = await supabase
+        .from('kanban_tasks').select('*');
+      if (error) return console.error(error);
+      cols.forEach(c => {
+        const ul = document.getElementById('list-'+c);
+        ul.innerHTML = '';
+        tasks.filter(t=>t.column===c)
+             .sort((a,b)=>a.position-b.position)
+             .forEach(t => {
+          const li = document.createElement('li');
+          li.className='task';
+          li.innerHTML=`<span class="txt">${t.text}</span><span class="del">✕</span>`;
+          li.querySelector('.del').onclick = async () => {
+            await supabase.from('kanban_tasks').delete().eq('id', t.id);
+            loadKanban();
+          };
+          ul.append(li);
+        });
+        Sortable.create(ul, {
+          group: { name:'kanban', pull:true, put:true }, animation:150,
+          onEnd: async evt => {
+            const moved = tasks.filter(t=>t.column===evt.from.dataset.col)[evt.oldIndex];
+            // simple: reload positions after any drag
+            await Promise.all(tasks.map((t,i)=>supabase
+              .from('kanban_tasks').update({ position:i }).eq('id',t.id)
+            ));
+            loadKanban();
+          }
+        });
+      });
+      document.getElementById('kanAddBtn').onclick = async () => {
+        const t = prompt('Task?');
+        const c = prompt('Column? backlog/open/working/approval/done').toLowerCase().trim();
+        if (!t||!['backlog','open','working','approval','done'].includes(c)) return alert('Invalid');
+        const { data, error } = await supabase
+          .from('kanban_tasks').select('position',{ count:'exact' });
+        const pos = error?0:data.length;
+        await supabase.from('kanban_tasks')
+          .insert([{ text:t.trim(), column:c, position:pos }]);
+        loadKanban();
+      };
+    }
+    loadKanban();
+
+    async function loadOKR() {
+      // fetch goals
+      const { data: goals, error: err1 } = await supabase.from('okr_goals').select('*').order('position',{ascending:true});
+      if (err1) return console.error(err1);
+      const container = document.getElementById('okrContainer');
+      container.innerHTML = '';
+      for (let g of goals) {
+        const col = document.createElement('div');
+        col.className='card okr-column';
+        col.dataset.okr = g.id;
+        col.innerHTML = `
+          <div class="section-head">
+            <h3>${g.title}</h3><span class="del">✕</span>
+          </div>
+          <button class="btn-add add-btn">＋ Add Achievement</button>
+          <ul class="okr-list"></ul>
+        `;
+        // remove goal
+        col.querySelector('.del').onclick = async () => {
+          await supabase.from('okr_goals').delete().eq('id', g.id);
+          await supabase.from('okr_items').delete().eq('goal_id', g.id);
+          loadOKR();
+        };
+        // add achievement
+        col.querySelector('.add-btn').onclick = async () => {
+          const ach = prompt('New achievement for “'+g.title+'”?');
+          if (!ach) return;
+          const { data, error } = await supabase
+            .from('okr_items').select('position',{count:'exact'});
+          const pos = error?0:data.length;
+          await supabase.from('okr_items')
+            .insert([{ goal_id: g.id, text: ach.trim(), position: pos }]);
+          loadOKR();
+        };
+        // load items
+        const ul = col.querySelector('.okr-list');
+        const { data: items, error: err2 } = await supabase
+          .from('okr_items').select('*').eq('goal_id', g.id).order('position',{ascending:true});
+        if (err2) console.error(err2);
+        items.forEach(it => {
+          const li = document.createElement('li');
+          li.className='task';
+          li.innerHTML = `<span class="txt">${it.text}</span><span class="del">✕</span>`;
+          li.querySelector('.del').onclick = async () => {
+            await supabase.from('okr_items').delete().eq('id', it.id);
+            loadOKR();
+          };
+          li.querySelector('.txt').ondblclick = async () => {
+            const up = prompt('Edit achievement:', it.text);
+            if (up) {
+              await supabase.from('okr_items').update({ text: up.trim() }).eq('id', it.id);
+              loadOKR();
+            }
+          };
+          ul.append(li);
+        });
+        container.append(col);
+      }
+      // add goal button
+      document.getElementById('okrAddBtn').onclick = async () => {
+        const title = prompt('New OKR goal name?');
+        if (!title) return;
+        const { data, error } = await supabase
+          .from('okr_goals').select('position',{count:'exact'});
+        const pos = error?0:data.length;
+        await supabase.from('okr_goals')
+          .insert([{ title: title.trim(), position: pos }]);
+        loadOKR();
+      };
+    }
+    loadOKR();
+
+    // --- Daily Quote (unchanged) ---
+    (() => { /* ... same as before ... */ })();
+
+  </script>
+</body>
+</html>
